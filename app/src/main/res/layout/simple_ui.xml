@@ -29,17 +29,38 @@
         android:paddingBottom="22dp"
         android:clickable="true">
 
-        <!-- control row: shutter (上方, iPhone-like) with gallery + flip -->
+        <!-- shutter: independent, centered, above the other three -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/sc_shutter"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_gravity="center_horizontal"
+                android:gravity="center"
+                android:text="拍照"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:textColor="#14150F"
+                android:background="@drawable/sc_shutter_photo"
+                android:clickable="true"
+                android:focusable="true" />
+        </FrameLayout>
+
+        <!-- one row, same height: gallery | 拍照/錄影 pill | flip -->
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingLeft="20dp"
-            android:paddingRight="20dp">
+            android:layout_marginTop="14dp"
+            android:paddingLeft="18dp"
+            android:paddingRight="18dp">
 
             <FrameLayout
                 android:id="@+id/sc_gallery"
-                android:layout_width="56dp"
-                android:layout_height="56dp"
+                android:layout_width="54dp"
+                android:layout_height="54dp"
                 android:layout_gravity="start|center_vertical"
                 android:background="@drawable/sc_sq_button"
                 android:clickable="true"
@@ -60,75 +81,59 @@
                     android:layout_height="match_parent"
                     android:gravity="center"
                     android:text="照片"
-                    android:textSize="14sp"
+                    android:textSize="13sp"
                     android:fontFamily="sans-serif-medium"
                     android:textColor="#FFFFFF" />
             </FrameLayout>
 
-            <TextView
-                android:id="@+id/sc_shutter"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:layout_gravity="center_horizontal"
-                android:gravity="center"
-                android:text="拍照"
-                android:textSize="17sp"
-                android:textStyle="bold"
-                android:textColor="#14150F"
-                android:background="@drawable/sc_shutter_photo"
-                android:clickable="true"
-                android:focusable="true" />
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:orientation="horizontal"
+                android:background="@drawable/sc_mode_pill"
+                android:padding="5dp">
+
+                <TextView
+                    android:id="@+id/sc_tab_photo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="44dp"
+                    android:minWidth="72dp"
+                    android:gravity="center"
+                    android:text="拍照"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:background="@drawable/sc_tab_selected"
+                    android:textColor="#14150F" />
+
+                <TextView
+                    android:id="@+id/sc_tab_video"
+                    android:layout_width="wrap_content"
+                    android:layout_height="44dp"
+                    android:minWidth="72dp"
+                    android:layout_marginStart="5dp"
+                    android:gravity="center"
+                    android:text="錄影"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#99FFFFFF" />
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/sc_flip"
-                android:layout_width="56dp"
-                android:layout_height="56dp"
+                android:layout_width="54dp"
+                android:layout_height="54dp"
                 android:layout_gravity="end|center_vertical"
                 android:gravity="center"
                 android:text="前/後"
-                android:textSize="14sp"
+                android:textSize="13sp"
                 android:fontFamily="sans-serif-medium"
                 android:textColor="#FFFFFF"
                 android:background="@drawable/sc_sq_button" />
         </FrameLayout>
-
-        <!-- mode toggle pill (下方) -->
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="12dp"
-            android:orientation="horizontal"
-            android:background="@drawable/sc_mode_pill"
-            android:padding="5dp">
-
-            <TextView
-                android:id="@+id/sc_tab_photo"
-                android:layout_width="wrap_content"
-                android:layout_height="42dp"
-                android:minWidth="84dp"
-                android:gravity="center"
-                android:text="拍照"
-                android:textSize="17sp"
-                android:textStyle="bold"
-                android:background="@drawable/sc_tab_selected"
-                android:textColor="#14150F" />
-
-            <TextView
-                android:id="@+id/sc_tab_video"
-                android:layout_width="wrap_content"
-                android:layout_height="42dp"
-                android:minWidth="84dp"
-                android:layout_marginStart="5dp"
-                android:gravity="center"
-                android:text="錄影"
-                android:textSize="17sp"
-                android:textStyle="bold"
-                android:textColor="#99FFFFFF" />
-        </LinearLayout>
     </LinearLayout>
 
-    <!-- ===== recording controls (only a stop button) ===== -->
+    <!-- ===== recording controls (only a stop button, aligned to shutter height) ===== -->
     <LinearLayout
         android:id="@+id/sc_recording_controls"
         android:layout_width="match_parent"
@@ -137,7 +142,7 @@
         android:orientation="vertical"
         android:gravity="center"
         android:paddingTop="10dp"
-        android:paddingBottom="22dp"
+        android:paddingBottom="94dp"
         android:visibility="gone">
 
         <LinearLayout
