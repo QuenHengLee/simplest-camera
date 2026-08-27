@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>把開源相機改造成長輩也會用的「簡單相機」</title>
+<meta name="description" content="一次 fork Open Camera、用疊加層重寫 UI、反覆打磨到發佈上架的完整工程紀錄。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700;900&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1a1a; --soft:#5c5c5c; --faint:#8a8a8a; --line:#e6e6e6;
+    --bg:#ffffff; --accent:#1f7a4d; --accent2:#E8B008; --rec:#B3261E;
+    --code-bg:#f6f8f7; --callout:#f4f8f5;
+    --serif:"Noto Serif TC",Georgia,"Times New Roman",serif;
+    --sans:"Noto Sans TC",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --ink:#ececec; --soft:#b3b3b3; --faint:#8a8a8a; --line:#2c2c2c;
+      --bg:#121212; --code-bg:#1b1e1c; --callout:#161d18; }
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);
+    line-height:1.85;font-size:20px;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:720px;margin:0 auto;padding:0 24px}
+  header.hero{max-width:820px;margin:0 auto;padding:72px 24px 20px}
+  .kicker{font-family:var(--sans);font-size:14px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--accent);font-weight:700;margin:0 0 20px}
+  h1{font-family:var(--serif);font-weight:900;font-size:44px;line-height:1.2;margin:0 0 20px;letter-spacing:-.01em}
+  .dek{font-family:var(--sans);font-size:21px;line-height:1.6;color:var(--soft);font-weight:400;margin:0 0 28px}
+  .byline{font-family:var(--sans);font-size:15px;color:var(--faint);display:flex;gap:10px;align-items:center;
+    flex-wrap:wrap;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:16px 0;margin-bottom:8px}
+  .byline .who{color:var(--ink);font-weight:700}
+  .avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1f7a4d,#E8B008);
+    display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-family:var(--sans)}
+  article{padding:16px 0 40px}
+  article p{margin:0 0 26px}
+  h2{font-family:var(--serif);font-weight:700;font-size:30px;line-height:1.3;margin:52px 0 8px;letter-spacing:-.01em}
+  h2 .num{color:var(--accent);font-size:18px;font-family:var(--sans);font-weight:700;display:block;margin-bottom:6px;letter-spacing:.1em}
+  h3{font-family:var(--sans);font-weight:700;font-size:20px;margin:34px 0 6px}
+  a{color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(31,122,77,.35)}
+  a:hover{border-bottom-color:var(--accent)}
+  strong{font-weight:700}
+  code{font-family:var(--mono);font-size:.82em;background:var(--code-bg);padding:.12em .4em;border-radius:5px}
+  pre{font-family:var(--mono);background:var(--code-bg);border:1px solid var(--line);border-radius:10px;
+    padding:18px 20px;overflow-x:auto;font-size:14.5px;line-height:1.7;margin:0 0 28px}
+  pre code{background:none;padding:0;font-size:inherit}
+  .callout{font-family:var(--sans);background:var(--callout);border-left:4px solid var(--accent);
+    border-radius:0 10px 10px 0;padding:18px 22px;margin:0 0 28px;font-size:17px;line-height:1.7}
+  .callout .lbl{font-weight:700;color:var(--accent);display:block;margin-bottom:4px;font-size:14px;letter-spacing:.05em}
+  blockquote{margin:0 0 28px;padding:6px 0 6px 26px;border-left:3px solid var(--accent2);
+    font-size:25px;line-height:1.5;color:var(--ink);font-weight:600}
+  figure.shot{margin:0 0 30px;text-align:center}
+  figcaption{font-family:var(--sans);font-size:14px;color:var(--faint);margin-top:10px}
+  .shots{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin:8px 0 6px}
+  .shots img{width:230px;max-width:44%;height:auto;border-radius:16px;border:1px solid var(--line);
+    box-shadow:0 10px 30px rgba(0,0,0,.22)}
+  .shot-single img{width:250px;max-width:70%;height:auto;border-radius:16px;border:1px solid var(--line);
+    box-shadow:0 10px 30px rgba(0,0,0,.22)}
+  hr{border:none;border-top:1px solid var(--line);margin:44px 0}
+  .lead{font-size:22px;line-height:1.7}
+  .lead::first-letter{font-size:64px;float:left;line-height:.8;padding:6px 12px 0 0;font-weight:900;color:var(--accent)}
+
+  /* phone mockups */
+  .phones{display:flex;gap:22px;justify-content:center;flex-wrap:wrap;margin:8px 0 12px}
+  .phone{width:190px;height:390px;border-radius:26px;background:#0E0E0C;border:6px solid #232320;
+    position:relative;overflow:hidden;box-shadow:0 12px 30px rgba(0,0,0,.25);font-family:var(--sans)}
+  .vf{position:absolute;left:0;right:0;background:repeating-linear-gradient(45deg,#2A2A26 0 9px,#232320 9px 18px)}
+  .phone.p .vf{top:26px;height:230px}
+  .phone.v .vf{top:0;bottom:0}
+  .bar{position:absolute;left:0;right:0;bottom:0;background:#0E0E0C;display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 0 16px}
+  .phone.p .bar{height:130px}
+  .shutter{width:60px;height:60px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#F2F0EA,#CFCCC4);border:5px solid var(--accent);
+    display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#14150F}
+  .phone.v .shutter{background:radial-gradient(circle at 38% 32%,#E8564A,#B3261E);border-color:#B3261E;color:#fff;position:absolute;left:50%;top:60%;transform:translate(-50%,-50%)}
+  .pill{display:flex;background:#0E0E0C;border:1px solid rgba(255,255,255,.14);border-radius:9px;padding:3px;gap:3px}
+  .pill span{font-size:11px;padding:6px 12px;border-radius:6px;color:rgba(255,255,255,.6);font-weight:700}
+  .pill .on{background:var(--accent2);color:#14150F}
+  .row{display:flex;align-items:center;justify-content:space-between;width:150px}
+  .sq{width:34px;height:34px;border-radius:9px;border:2px solid rgba(255,255,255,.28);background:#191916}
+  .gear{position:absolute;top:34px;right:14px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.4);
+    display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px}
+  .cap{position:absolute;top:14px;left:50%;transform:translateX(-50%);background:var(--rec);color:#fff;
+    font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px;font-family:var(--mono)}
+  .phone.v .recborder{position:absolute;inset:0;border:4px solid var(--rec);border-radius:20px;opacity:.85;pointer-events:none}
+
+  /* timeline */
+  .timeline{font-family:var(--sans);margin:0 0 28px;padding:0;list-style:none}
+  .timeline li{position:relative;padding:0 0 22px 34px;border-left:2px solid var(--line);margin-left:8px}
+  .timeline li:last-child{border-left-color:transparent}
+  .timeline .dot{position:absolute;left:-9px;top:2px;width:16px;height:16px;border-radius:50%;background:var(--accent);border:3px solid var(--bg)}
+  .timeline .ver{font-weight:700;color:var(--ink);font-size:17px}
+  .timeline .desc{color:var(--soft);font-size:16px;line-height:1.6}
+  .footer{font-family:var(--sans);color:var(--faint);font-size:15px;border-top:1px solid var(--line);
+    padding:30px 0 70px;line-height:1.7}
+  .tag{display:inline-block;font-family:var(--sans);font-size:13px;color:var(--soft);background:var(--code-bg);
+    border:1px solid var(--line);border-radius:999px;padding:4px 12px;margin:0 6px 8px 0}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <p class="kicker">Build Log · Android</p>
+  <h1>把一支開源相機,改造成長輩也會用的「簡單相機」</h1>
+  <p class="dek">從一支舊 HTC U11 的 <code>adb</code> 探索開始,fork 了 Open Camera,用「疊加層 + 複用相機管線」的方式重寫 UI,再一次次打磨到能發佈給家人安裝。這是完整的工程紀錄——包含每一個把我卡住的細節。</p>
+  <div class="byline">
+    <span class="avatar">簡</span>
+    <span><span class="who">QuenHengLee</span> · 開發紀錄</span>
+    <span>·</span>
+    <span>2026 年 8 月</span>
+    <span>·</span>
+    <span>約 12 分鐘閱讀</span>
+  </div>
+</header>
+
+<div class="wrap">
+<article>
+
+<p class="lead">起因很日常:家裡長輩覺得三星原生相機「按鈕太多、不知道要按哪個」。他們要的其實只有一件事——<strong>對準、按一下、拍到</strong>。市面上的相機 App 就算標榜簡單,設定、濾鏡、比例、HDR 一字排開,對不熟手機的人還是負擔。於是我決定自己做一支,刪到只剩必要。</p>
+
+<p>與其從零寫相機(處理 Camera2、對焦、儲存、權限……是個大坑),我選擇站在巨人的肩膀上:fork 一個成熟的開源相機,只重寫「使用者看到的那一層」。這篇文章記錄整個過程,以及一路上真正讓我停下來除錯的地方。</p>
+
+<h2><span class="num">01</span>從一支 HTC U11 開始</h2>
+<p>手邊的測試機是一支舊 HTC U11。第一步是打開 <strong>USB 偵錯</strong>,讓電腦能透過 <code>adb</code> 控制它:設定 → 關於手機 → 連點「版本號碼」七次解鎖開發人員選項,再打開 USB 偵錯。接上線、在手機上按「一律允許」之後:</p>
+<pre><code>$ adb devices -l
+FA78T1801518   device  model:HTC_U_3u  device:htc_ocndugl</code></pre>
+<p>裝置就緒。順帶一提,過程中想查電池循環次數才發現:未 root 的手機,不管是 <code>dumpsys battery</code>、底層 <code>sysfs</code> 節點還是 <code>*#*#4636#*#*</code> 選單,都拿不到 cycle count——那是原廠鎖住的資訊。這是題外話,但也是這趟旅程的第一課:<em>先確認「能不能拿到」,再決定怎麼做。</em></p>
+
+<h2><span class="num">02</span>為什麼選 Open Camera</h2>
+<p><a href="https://opencamera.org.uk/">Open Camera</a> 是一支成熟的 Android 開源相機,作者 Mark Harman,採 <strong>GPL v3</strong> 授權,純 Java 撰寫。GPL 代表我可以合法 fork、修改、甚至散布,只要:散布時一併釋出原始碼、保留授權與版權聲明、標註修改。對「做一支自用/給家人的 App」來說再適合不過。</p>
+<div class="callout"><span class="lbl">GPL 提醒</span>fork GPL 專案完全合法,但一旦你把 APK 給別人,就必須以 GPL v3 公開你的完整原始碼並保留出處。自己用則無此義務。這也是為什麼這支 App 的原始碼是公開的。</div>
+
+<h2><span class="num">03</span>用可攜工具鏈把它 build 起來</h2>
+<p>這台開發機沒裝 Android Studio,只有一套可攜式工具鏈(JDK 17、Gradle、Android SDK)。clone 下來後才發現它要 <strong>compileSdk 36 + build-tools 36 + Gradle 8.13</strong>,SDK 只有 34,於是先用 <code>sdkmanager</code> 補齊,再:</p>
+<pre><code>JAVA_HOME=&lt;jdk17&gt; ANDROID_HOME=&lt;sdk&gt; ./gradlew assembleDebug
+# → BUILD SUCCESSFUL, app-debug.apk (~5.7MB)</code></pre>
+<p>第一次裝到測試機卻踩到 <code>INSTALL_FAILED_UPDATE_INCOMPATIBLE</code>——因為手機上已有正版 Open Camera,簽章不同無法覆蓋。解法是給 debug 版加一個 <code>applicationIdSuffix ".dev"</code>,讓它以 <code>net.sourceforge.opencamera.dev</code> 和正版<strong>並存</strong>:</p>
+<pre><code>buildTypes {
+    debug { applicationIdSuffix ".dev"; versionNameSuffix "-dev" }
+}</code></pre>
+
+<h2><span class="num">04</span>核心決策:疊加層 + 複用相機管線</h2>
+<p>這是整個專案最關鍵的架構選擇。我<strong>沒有</strong>重寫相機,而是:在 Open Camera 既有的畫面最上層,疊一層全新的極簡 UI;新按鈕直接呼叫 OC 既有的方法(<code>takePicture</code>、<code>clickedSwitchCamera</code>、<code>clickedSwitchVideo</code>),相機管線、權限、儲存全部沿用。原生的控制項則一律隱藏。</p>
+<blockquote>不重寫相機,只重寫「使用者看到的那一層」。</blockquote>
+<p>成果是兩個乾淨的畫面。用純 CSS 還原一下(下面是網頁模擬,非截圖):</p>
+<div class="phones">
+  <div class="phone p">
+    <div class="gear">⚙</div>
+    <div class="vf"></div>
+    <div class="bar">
+      <div class="shutter">拍照</div>
+      <div class="row"><div class="sq"></div>
+        <div class="pill"><span class="on">拍照</span><span>錄影</span></div>
+        <div class="sq"></div></div>
+    </div>
+  </div>
+  <div class="phone v">
+    <div class="vf"></div>
+    <div class="recborder"></div>
+    <div class="cap">● 0:08</div>
+    <div class="shutter">錄影</div>
+  </div>
+</div>
+<p style="font-family:var(--sans);font-size:14px;color:var(--faint);text-align:center;margin-top:-2px">左:拍照頁(4:3 貼齊上方,控制列在下方黑底)。右:錄影頁(16:9 滿版,紅框脈動提示,控制項浮動)。</p>
+
+<figure class="shot">
+  <div class="shots">
+    <img src="assets/photo.png" alt="拍照頁實機截圖:上方為即時預覽、右上角設定齒輪,下方黑底區有綠色拍照快門、拍照/錄影切換、相簿縮圖、循環箭頭切換鏡頭">
+    <img src="assets/video.png" alt="錄影頁實機截圖:16:9 預覽滿版,紅色錄影快門與控制項透明浮動在畫面上">
+  </div>
+  <figcaption>實機截圖(HTC U11)。左:拍照頁。右:錄影頁。</figcaption>
+</figure>
+
+<h2><span class="num">05</span>魔鬼藏在細節裡</h2>
+<p>疊加層的想法很美,但 Open Camera 有它自己的一套 UI 生命週期,和我的疊加層不斷「打架」。以下是真正讓我停下來除錯的幾個坑。</p>
+
+<h3>坑一:原生按鈕怎麼藏都藏不掉</h3>
+<p>我在啟動時把原生按鈕設成 <code>GONE</code>,但曝光鈕和快門鈕還是會冒出來。原因是 OC 的按鈕預設就是 <code>VISIBLE</code>,而且相機開啟時的 <code>cameraSetup()</code> 會依偏好把它們再顯示一次。光在 <code>showGUI()</code> 攔截不夠,得連 <code>cameraSetup</code> 一起守衛:</p>
+<pre><code>if (SIMPLE_UI) {
+    takePhotoButton.setVisibility(View.GONE); // 用我們自己的快門
+}
+// exposure、settings、popup、switch_* 也在 MainUI 的兩個節點強制 GONE</code></pre>
+
+<h3>坑二:錄影一停止就閃退</h3>
+<p>最陰險的一個。停止錄影必定 crash:</p>
+<pre><code>java.lang.IllegalArgumentException: width and height must be &gt; 0
+  at Bitmap.createScaledBitmap(...)
+  at MyApplicationInterface.stoppedVideo(...)</code></pre>
+<p>追下去發現:OC 停止錄影時,會拿「圖庫按鈕的寬度」去縮放影片縮圖。但我把圖庫按鈕藏起來了,它的寬度是 <strong>0</strong> → 縮成 0×0 → 崩潰。修法是在精簡模式下跳過 OC 的縮圖產生(反正我用自己的 MediaStore 縮圖)。</p>
+<div class="callout"><span class="lbl">教訓</span>隱藏一個 View 不只是「看不見」——它的尺寸變成 0,任何依賴它幾何資訊的程式碼都可能爆炸。</div>
+
+<h3>坑三:所見 ≠ 所得</h3>
+<p>為了消掉 4:3 照片在長螢幕上的黑邊,我一度把預覽設成「填滿螢幕」模式。畫面很漂亮,但拍出來的照片卻包含預覽<strong>沒顯示</strong>的左右兩側——使用者照著預覽構圖,拍到的卻不是那個框。對主打「簡單」的相機,這是致命的。最後回到 WYSIWYG:預覽比例 = 照片比例,誠實優先,黑邊當作控制列的位置(這正是 iPhone 的做法)。</p>
+<blockquote>對一支簡單相機來說,「所見即所得」比「消除黑邊」重要太多。</blockquote>
+
+<h3>坑四:切換模式後立刻按快門,被靜默吞掉</h3>
+<p>使用者回報:點「錄影」→ 點「拍照」→ 一秒內按快門,4 次全部沒反應、不產生檔案也沒提示。原因是切換模式會讓相機<strong>重開約一秒</strong>,期間相機控制器是 <code>null</code>,<code>takePicture()</code> 被 OC 靜默丟棄。修法是:按快門時若相機還沒就緒,<strong>延後重試</strong>直到就緒才拍,而不是吞掉。</p>
+<pre><code>private void tryCapture(int attempt) {
+    if (cameraReady()) { doCapture(); }
+    else if (attempt &lt; 30) {          // 最多等 ~3 秒
+        handler.postDelayed(() -&gt; tryCapture(attempt + 1), 100);
+    }
+}</code></pre>
+<p>修完之後,同樣的重現路徑 <strong>4/4 全部成功</strong>。</p>
+
+<h3>坑五:UI 會跟著手機轉</h3>
+<p>長輩橫拿手機時,整個 UI 跟著旋轉、還跑出奇怪的按鈕。OC 預設在非橫向鎖定時用 <code>SCREEN_ORIENTATION_SENSOR</code>。精簡版直接鎖成直向,UI 不再亂轉:</p>
+<pre><code>else if (SIMPLE_UI)
+    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);</code></pre>
+
+<h2><span class="num">06</span>排版打磨</h2>
+<p>功能對了之後,是一輪輪的視覺打磨,大多來自實機看到的問題:</p>
+<p><strong>iPhone 式版面。</strong>快門獨立置中在上方,相簿、拍照/錄影、切換鏡頭排成同一列在下方。<strong>拍照/錄影分頁設計。</strong>拍照是 4:3 貼齊頂部、控制列在下方黑底;錄影是 16:9 滿版、控制項透明浮動。<strong>錄影提示。</strong>觀景窗紅框以約 1.8 秒一次的節奏緩慢脈動,搭配頂部計時膠囊,錄影中畫面上只留一顆「停止」。<strong>相簿縮圖。</strong>相簿鍵顯示上一張的縮圖。<strong>切換鏡頭</strong>改用循環箭頭圖示。<strong>右上角設定鈕</strong>可設定/新建儲存資料夾。</p>
+
+<figure class="shot shot-single">
+  <img src="assets/recording.png" alt="錄影中畫面:觀景窗四周紅框、頂部紅色計時膠囊顯示秒數、畫面下方只有一顆停止鍵">
+  <figcaption>錄影中:紅框緩慢脈動 + 計時膠囊,畫面上只留一顆「停止」。</figcaption>
+</figure>
+
+<p>還有一個長螢幕(如 Galaxy S25,約 19.5:9)才明顯的問題:4:3 的黑邊全擠在底部一大塊很怪。解法是<strong>執行時計算</strong>,把預覽往下推,讓黑塊分成上方一小條(放設定鈕)+ 下方控制列,同時保證預覽仍是全寬 4:3、不被壓縮:</p>
+<pre><code>int topMargin = Math.max(0, Math.min(sh - ph, sh - ph - ch));
+// sh=螢幕高, ph=預覽高, ch=控制列高 → 黑塊平均分配、預覽不縮水</code></pre>
+
+<h2><span class="num">07</span>版本控管、測試與發佈</h2>
+<p><strong>用 scrcpy 遠端操作。</strong>整個過程幾乎都靠 <a href="https://github.com/Genymobile/scrcpy">scrcpy</a> 把手機鏡射到電腦上、用滑鼠即時操作與截圖,不必一直低頭看手機。</p>
+<p><strong>自己的版本號方案。</strong>一開始 release 沿用了 OC 的 <code>versionCode 96</code>,導致每次發佈在「靠 versionCode 判斷更新」的機制裡看起來都是同一版。改成自己的方案 <code>major×10000 + minor×100 + patch</code>(v1.4 = 10400),每次發佈遞增。</p>
+<p><strong>正式簽章 + GitHub Releases。</strong>建了 release 金鑰(密碼與金鑰檔都不進版控),簽章後把 APK 發到 GitHub Releases,家人用手機瀏覽器就能下載安裝。</p>
+
+<h3>版本足跡</h3>
+<ul class="timeline">
+  <li><span class="dot"></span><div class="ver">v1.0 — 第一支能跑的正式版</div><div class="desc">四鍵極簡 UI、錄影紅框提示、正式簽章。(含一個 WYSIWYG bug)</div></li>
+  <li><span class="dot"></span><div class="ver">v1.1 — 修正所見即所得</div><div class="desc">預覽框回到與實際照片一致。</div></li>
+  <li><span class="dot"></span><div class="ver">v1.2 — 拍照/錄影版面分離</div><div class="desc">iPhone 式排版、循環箭頭切換鏡頭鍵。</div></li>
+  <li><span class="dot"></span><div class="ver">v1.3 — 修快門吞按 + 版本號</div><div class="desc">切換模式後快門延後重試;改用自己的 versionCode 方案。</div></li>
+  <li><span class="dot"></span><div class="ver">v1.4 — 設定鈕 + 長螢幕黑塊平衡</div><div class="desc">右上角設定儲存資料夾;S25 這類長螢幕的黑邊平均分配。</div></li>
+</ul>
+
+<h2><span class="num">08</span>成果</h2>
+<p>一支只有<strong>拍照 / 錄影 / 相簿 / 切換鏡頭</strong>四個大按鈕、全螢幕直向、所見即所得、錄影有明確提示的相機。相機的硬底子全部沿用 Open Camera 久經考驗的實作,我只負責「讓它變簡單」。</p>
+<p>回頭看,最大的收穫不是任何單一功能,而是一個做法:<em>當你只想改變一個成熟軟體的一小部分時,「疊加 + 複用」往往比「重寫」走得更遠——前提是你願意花時間搞懂它原本是怎麼運作的,以及在哪些地方會跟你打架。</em></p>
+
+<p style="margin-top:10px">
+<span class="tag">Android</span><span class="tag">Java</span><span class="tag">Open Camera fork</span><span class="tag">GPL v3</span><span class="tag">Camera2</span><span class="tag">scrcpy</span><span class="tag">給長輩的軟體</span>
+</p>
+
+<hr>
+
+<div class="footer">
+  <p><strong>原始碼與下載</strong><br>
+  GitHub:<a href="https://github.com/QuenHengLee/simplest-camera">QuenHengLee/simplest-camera</a><br>
+  最新版下載:<a href="https://github.com/QuenHengLee/simplest-camera/releases/latest">Releases</a></p>
+  <p>本專案為 <a href="https://opencamera.org.uk/">Open Camera</a>(作者 Mark Harman)之衍生作品,依 <strong>GPL v3</strong> 釋出並保留原始授權與版權聲明。</p>
+  <p style="color:var(--faint)">寫於 2026 年 8 月 · 這份紀錄本身也放在專案的 <code>docs/</code> 裡。</p>
+</div>
+
+</article>
+</div>
+</body>
+</html>
