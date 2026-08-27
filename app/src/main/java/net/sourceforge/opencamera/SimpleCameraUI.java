@@ -178,6 +178,8 @@ public class SimpleCameraUI {
             shutter.setBackgroundResource(R.drawable.sc_shutter_video);
             shutter.setText("錄影");
             shutter.setTextColor(0xFFFFFFFF);
+            // video: preview fills the screen, controls float over it (transparent)
+            cameraControls.setBackgroundColor(0x00000000);
         } else {
             tabPhoto.setBackgroundResource(R.drawable.sc_tab_selected);
             tabPhoto.setTextColor(0xFF14150F);
@@ -186,6 +188,8 @@ public class SimpleCameraUI {
             shutter.setBackgroundResource(R.drawable.sc_shutter_photo);
             shutter.setText("拍照");
             shutter.setTextColor(0xFF14150F);
+            // photo: 4:3 preview pinned to the top, controls sit in the black block below
+            cameraControls.setBackgroundColor(0xFF000000);
         }
         refreshFlipLabel();
     }
