@@ -175,20 +175,21 @@ public class SimpleCameraUI {
         int sh = root.getHeight();
         int ph = preview.getHeight();
         if (sh <= 0 || ph <= 0) return;
-        int topMargin;
-        if (isVideoMode()) {
-            topMargin = 0;
-        } else {
-            int ch = cameraControls.getHeight();
-            // keep the preview full-width 4:3 (never shrink it): cap so available height >= ph
-            topMargin = Math.max(0, Math.min(sh - ph, sh - ph - ch));
-        }
+        int ch = cameraControls.getHeight();
+        // Push the preview down so the control bar sits directly below it in the leftover
+        // black, instead of floating far below with a big gap on tall screens. If the preview
+        // already fills the screen (e.g. 16:9 on a 16:9 device), topMargin=0 and the controls
+        // float over the preview. Same rule for photo and video. Never shrink the preview.
+        int topMargin = Math.max(0, Math.min(sh - ph, sh - ph - ch));
         if (topMargin != lastPvTopMargin) {
             ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) preview.getLayoutParams();
             lp.topMargin = topMargin;
             preview.setLayoutParams(lp);
             lastPvTopMargin = topMargin;
         }
+        // solid black bar when controls sit in a black area below the preview; transparent
+        // (float over the image) when the preview fills the screen.
+        cameraControls.setBackgroundColor(topMargin > 0 ? 0xFF000000 : 0x00000000);
     }
 
     private boolean isVideoMode() {
@@ -206,8 +207,6 @@ public class SimpleCameraUI {
             shutter.setBackgroundResource(R.drawable.sc_shutter_video);
             shutter.setText("錄影");
             shutter.setTextColor(0xFFFFFFFF);
-            // video: preview fills the screen, controls float over it (transparent)
-            cameraControls.setBackgroundColor(0x00000000);
         } else {
             tabPhoto.setBackgroundResource(R.drawable.sc_tab_selected);
             tabPhoto.setTextColor(0xFF14150F);
@@ -216,8 +215,6 @@ public class SimpleCameraUI {
             shutter.setBackgroundResource(R.drawable.sc_shutter_photo);
             shutter.setText("拍照");
             shutter.setTextColor(0xFF14150F);
-            // photo: 4:3 preview, controls sit in the black block below
-            cameraControls.setBackgroundColor(0xFF000000);
         }
         // recompute preview position for the new mode (photo balances black, video top-aligns)
         lastPvTopMargin = -1;
@@ -287,6 +284,7 @@ public class SimpleCameraUI {
         starting = false;
         screen = Screen.RECORDING;
         cameraControls.setVisibility(View.GONE);
+        if (settingsBtn != null) settingsBtn.setVisibility(View.GONE); // only the stop button while recording
         recordingControls.setVisibility(View.VISIBLE);
         recCapsule.setVisibility(View.VISIBLE);
         startRecBorder();
@@ -311,6 +309,7 @@ public class SimpleCameraUI {
         recCapsule.setVisibility(View.GONE);
         recordingControls.setVisibility(View.GONE);
         cameraControls.setVisibility(View.VISIBLE);
+        if (settingsBtn != null) settingsBtn.setVisibility(View.VISIBLE);
         stopRecBorder();
         screen = Screen.CAMERA;
         playTuck();
