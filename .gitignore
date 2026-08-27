@@ -27,3 +27,8 @@ uninstall.bat
 
 # simplest-camera additions
 design_handoff.zip
+
+# signing secrets (never commit)
+keystore.properties
+*.jks
+*.keystore

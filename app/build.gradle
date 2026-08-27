@@ -1,8 +1,26 @@
 apply plugin: 'com.android.application'
 
+// Load release signing config from keystore.properties (git-ignored) if present.
+def keystorePropsFile = rootProject.file("keystore.properties")
+def keystoreProps = new Properties()
+if( keystorePropsFile.exists() ) {
+    keystoreProps.load(new FileInputStream(keystorePropsFile))
+}
+
 android {
     compileSdk = 36
     compileOptions.encoding = 'UTF-8'
+
+    signingConfigs {
+        if( keystorePropsFile.exists() ) {
+            release {
+                storeFile file(keystoreProps['storeFile'])
+                storePassword keystoreProps['storePassword']
+                keyAlias keystoreProps['keyAlias']
+                keyPassword keystoreProps['keyPassword']
+            }
+        }
+    }
 
     defaultConfig {
         applicationId "net.sourceforge.opencamera"
@@ -23,6 +41,9 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.txt'
+            if( keystorePropsFile.exists() ) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 
