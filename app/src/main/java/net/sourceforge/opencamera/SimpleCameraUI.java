@@ -21,10 +21,6 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-
 import net.sourceforge.opencamera.cameracontroller.CameraController;
 
 import java.util.Locale;
@@ -51,6 +47,7 @@ public class SimpleCameraUI {
     private int secs;
     private ObjectAnimator recBorderAnim;
     private boolean starting, stopping;
+    private int lastNavGap = -1;
 
     public SimpleCameraUI(MainActivity main) {
         this.main = main;
@@ -119,24 +116,6 @@ public class SimpleCameraUI {
         tabVideo.setOnClickListener(v -> selectMode(true));
         settingsBtn.setOnClickListener(v -> main.openStorageChooser());
 
-        // Edge-to-edge: keep controls clear of the system status/navigation bars so they
-        // don't overlap the nav bar (e.g. on the A56's gesture bar).
-        final int camTop = dp(10), camBottom = dp(22), recTop = dp(10), recBottom = dp(94), gearTop = dp(16);
-        ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
-            Insets sb = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            cameraControls.setPadding(0, camTop, 0, camBottom + sb.bottom);
-            recordingControls.setPadding(0, recTop, 0, recBottom + sb.bottom);
-            if (settingsBtn != null) {
-                ViewGroup.MarginLayoutParams glp = (ViewGroup.MarginLayoutParams) settingsBtn.getLayoutParams();
-                glp.topMargin = gearTop + sb.top;
-                settingsBtn.setLayoutParams(glp);
-            }
-            lastPvTopMargin = -1; // control height changed → recompute preview position
-            root.post(this::adjustPreviewPosition);
-            return insets;
-        });
-        ViewCompat.requestApplyInsets(root);
-
         // keep the recording border + timer capsule glued to the real preview rectangle,
         // so they hug the actual image on any screen ratio (U11, A56, ...).
         if (preview != null) {
@@ -192,8 +171,20 @@ public class SimpleCameraUI {
     /** Balance the black area: in photo mode (4:3) push the preview down so leftover black
      *  is split between a top strip (holding the settings button) and the bottom control bar,
      *  instead of one huge block at the bottom on tall screens. Video stays top-aligned. */
+    /** Pad the control bars by the navigation-bar height (edge-to-edge) so they don't sit
+     *  under the system nav/gesture bar. Uses Open Camera's already-computed gap. */
+    private void applyControlInsets() {
+        int gap = 0;
+        try { gap = main.getNavigationGap(); } catch (Exception ignored) {}
+        if (gap == lastNavGap) return;
+        lastNavGap = gap;
+        cameraControls.setPadding(0, dp(10), 0, dp(22) + gap);
+        recordingControls.setPadding(0, dp(10), 0, dp(94) + gap);
+    }
+
     private void adjustPreviewPosition() {
         if (preview == null || root == null) return;
+        applyControlInsets();
         int sh = root.getHeight();
         int ph = preview.getHeight();
         if (sh <= 0 || ph <= 0) return;
