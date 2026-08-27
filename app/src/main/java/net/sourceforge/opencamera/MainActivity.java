@@ -4743,6 +4743,11 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         }
     }
 
+    /** Simplest Camera: open the save-location chooser from our own settings button. */
+    public void openStorageChooser() {
+        longClickedGallery();
+    }
+
     /** User can long-click on gallery to select a recent save location from the history, of if not available,
      *  go straight to the file dialog to pick a folder.
      */

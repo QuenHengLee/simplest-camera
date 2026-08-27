@@ -14,6 +14,7 @@ import android.provider.MediaStore;
 import android.util.Size;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
 import android.view.animation.PathInterpolator;
 import android.widget.FrameLayout;
@@ -38,7 +39,8 @@ public class SimpleCameraUI {
     private View root, preview, cameraControls, recordingControls;
     private TextView tabPhoto, tabVideo, shutter, timerText, galleryLabel;
     private ImageView galleryThumb;
-    private View gallery, flipBtn, stopBtn, flash, tuck, recCapsule, recBorder;
+    private View gallery, flipBtn, stopBtn, flash, tuck, recCapsule, recBorder, settingsBtn;
+    private int lastPvTopMargin = -1;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private Runnable timerTick;
@@ -73,6 +75,7 @@ public class SimpleCameraUI {
         tuck = main.findViewById(R.id.sc_tuck);
         recCapsule = main.findViewById(R.id.sc_rec_capsule);
         recBorder = main.findViewById(R.id.sc_rec_border);
+        settingsBtn = main.findViewById(R.id.sc_settings);
 
         // physical-feeling shutter: circular shadow + press translate
         ViewOutlineProvider oval = new ViewOutlineProvider() {
@@ -110,12 +113,13 @@ public class SimpleCameraUI {
         flipBtn.setOnClickListener(v -> { main.clickedSwitchCamera(v); handler.postDelayed(this::refreshFlipLabel, 400); });
         tabPhoto.setOnClickListener(v -> selectMode(false));
         tabVideo.setOnClickListener(v -> selectMode(true));
+        settingsBtn.setOnClickListener(v -> main.openStorageChooser());
 
         // keep the recording border + timer capsule glued to the real preview rectangle,
         // so they hug the actual image on any screen ratio (U11, A56, ...).
         if (preview != null) {
-            preview.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> syncToPreview());
-            preview.post(this::syncToPreview);
+            preview.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> { adjustPreviewPosition(); syncToPreview(); });
+            preview.post(() -> { adjustPreviewPosition(); syncToPreview(); });
         }
 
         refreshMode();
@@ -163,6 +167,30 @@ public class SimpleCameraUI {
         recCapsule.setLayoutParams(clp);
     }
 
+    /** Balance the black area: in photo mode (4:3) push the preview down so leftover black
+     *  is split between a top strip (holding the settings button) and the bottom control bar,
+     *  instead of one huge block at the bottom on tall screens. Video stays top-aligned. */
+    private void adjustPreviewPosition() {
+        if (preview == null || root == null) return;
+        int sh = root.getHeight();
+        int ph = preview.getHeight();
+        if (sh <= 0 || ph <= 0) return;
+        int topMargin;
+        if (isVideoMode()) {
+            topMargin = 0;
+        } else {
+            int ch = cameraControls.getHeight();
+            // keep the preview full-width 4:3 (never shrink it): cap so available height >= ph
+            topMargin = Math.max(0, Math.min(sh - ph, sh - ph - ch));
+        }
+        if (topMargin != lastPvTopMargin) {
+            ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) preview.getLayoutParams();
+            lp.topMargin = topMargin;
+            preview.setLayoutParams(lp);
+            lastPvTopMargin = topMargin;
+        }
+    }
+
     private boolean isVideoMode() {
         return main.getPreview() != null && main.getPreview().isVideo();
     }
@@ -188,9 +216,12 @@ public class SimpleCameraUI {
             shutter.setBackgroundResource(R.drawable.sc_shutter_photo);
             shutter.setText("拍照");
             shutter.setTextColor(0xFF14150F);
-            // photo: 4:3 preview pinned to the top, controls sit in the black block below
+            // photo: 4:3 preview, controls sit in the black block below
             cameraControls.setBackgroundColor(0xFF000000);
         }
+        // recompute preview position for the new mode (photo balances black, video top-aligns)
+        lastPvTopMargin = -1;
+        if (root != null) root.post(this::adjustPreviewPosition);
         refreshFlipLabel();
     }
 
