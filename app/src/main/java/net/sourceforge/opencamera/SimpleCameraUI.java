@@ -210,6 +210,28 @@ public class SimpleCameraUI {
 
     private void onShutter() {
         if (screen != Screen.CAMERA) return;
+        // A mode switch reopens the camera (~1s); during that window the camera controller
+        // is null and takePicture() would be silently dropped. Defer until the camera is
+        // ready so the press is never swallowed.
+        tryCapture(0);
+    }
+
+    private boolean cameraReady() {
+        return main.getPreview() != null
+            && main.getPreview().getCameraController() != null
+            && !main.getPreview().isTakingPhotoOrOnTimer();
+    }
+
+    private void tryCapture(int attempt) {
+        if (screen != Screen.CAMERA) return;
+        if (cameraReady()) {
+            doCapture();
+        } else if (attempt < 30) { // wait up to ~3s for the camera to (re)open
+            handler.postDelayed(() -> tryCapture(attempt + 1), 100);
+        }
+    }
+
+    private void doCapture() {
         if (isVideoMode()) {
             if (starting) return;
             starting = true;
