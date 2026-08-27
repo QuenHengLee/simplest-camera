@@ -190,14 +190,9 @@ public class SimpleCameraUI {
         refreshFlipLabel();
     }
 
-    /** Show the camera the button will switch TO ("前" when on back, "後" when on front). */
+    /** Flip button always shows "前/後" (it toggles between front and back cameras). */
     public void refreshFlipLabel() {
-        if (flipBtn == null) return;
-        try {
-            CameraController cc = main.getPreview() != null ? main.getPreview().getCameraController() : null;
-            if (cc != null)
-                flipBtn.setText(cc.getFacing() == CameraController.Facing.FACING_FRONT ? "後" : "前");
-        } catch (Exception ignored) {}
+        if (flipBtn != null) flipBtn.setText("前/後");
     }
 
     private void selectMode(boolean wantVideo) {

@@ -725,7 +725,8 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         // lock to portrait (elder-friendly, and avoids rotation edge-cases) and keep the
         // preview matching the photo aspect ratio (WYSIWYG).
         e.putString("preference_lock_orientation", "portrait");
-        e.putString("preference_preview_size", "preference_preview_size_wysiwyg");
+        // fill the whole screen with the preview (may crop) instead of letterboxing to the photo ratio
+        e.putString("preference_preview_size", "preference_preview_size_display");
         e.apply();
     }
 
@@ -5177,7 +5178,10 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                 Log.d(TAG, "cameraSetup: time after setting up zoom: " + (System.currentTimeMillis() - debug_time));
 
             View takePhotoButton = findViewById(R.id.take_photo);
-            if( sharedPreferences.getBoolean(PreferenceKeys.ShowTakePhotoPreferenceKey, true) ) {
+            if( SIMPLE_UI ) {
+                takePhotoButton.setVisibility(View.GONE); // we use our own shutter overlay
+            }
+            else if( sharedPreferences.getBoolean(PreferenceKeys.ShowTakePhotoPreferenceKey, true) ) {
                 if( !mainUI.inImmersiveMode() ) {
                     takePhotoButton.setVisibility(View.VISIBLE);
                 }

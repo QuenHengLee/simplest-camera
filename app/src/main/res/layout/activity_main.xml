@@ -23,6 +23,7 @@
         android:stateListAnimator="@animator/button_animation"
         android:onClick="clickedTakePhoto"
         android:background="@null"
+        android:visibility="gone"
         />
 
     <ImageButton
