@@ -725,8 +725,10 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         // lock to portrait (elder-friendly, and avoids rotation edge-cases) and keep the
         // preview matching the photo aspect ratio (WYSIWYG).
         e.putString("preference_lock_orientation", "portrait");
-        // fill the whole screen with the preview (may crop) instead of letterboxing to the photo ratio
-        e.putString("preference_preview_size", "preference_preview_size_display");
+        // WYSIWYG: preview must match the saved photo aspect ratio, so framing is honest.
+        // (The alternative "display" fills the screen but crops the preview, so the photo
+        //  captures more than the preview showed — unacceptable for a simple camera.)
+        e.putString("preference_preview_size", "preference_preview_size_wysiwyg");
         e.apply();
     }
 
