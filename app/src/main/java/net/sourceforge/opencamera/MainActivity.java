@@ -5835,6 +5835,8 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
      *  them if certain settings are on.
      */
     private void showPhotoVideoToast(boolean always_show) {
+        if( SIMPLE_UI )
+            return; // Simplest Camera: no resolution/fps/orientation info toast
         if( MyDebug.LOG ) {
             Log.d(TAG, "showPhotoVideoToast");
             Log.d(TAG, "always_show? " + always_show);
