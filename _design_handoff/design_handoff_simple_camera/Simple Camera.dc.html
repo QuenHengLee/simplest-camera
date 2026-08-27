@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><meta name="design_doc_mode" content="canvas"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet"><style>body{margin:0;background:#EDEBE6;font-family:"Noto Sans TC","Libre Franklin",system-ui,sans-serif}a{color:#1F7A4D}a:hover{color:#14150F}@keyframes c-tuck{from{transform:translate(0,0) scale(1);opacity:.96}to{transform:translate(21px,180px) scale(.13);opacity:0}}.dv-turn{padding:40px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08)}.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 20px}.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#14150F;color:#fff;border-radius:4px;text-decoration:none}.dv-tname{font:600 13px/1.2 "Noto Sans TC",system-ui,sans-serif;color:#14150F}.dv-opt{display:flex;flex-direction:column;gap:10px}.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#14150F;border-radius:5px;text-decoration:none}.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 11.5px/1.4 "Noto Sans TC",system-ui,sans-serif;color:rgba(0,0,0,.55);max-width:402px}.dv-next{margin:26px 0 0;font:12px/1.6 "Noto Sans TC",system-ui,sans-serif;color:rgba(0,0,0,.5)}</style></helmet>
+
+<section class="dv-turn" id="t1">
+<div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">把相機刪到只剩長輩真正需要的</span></div>
+
+<div style="max-width:1080px;margin:0 0 26px;font:400 13px/1.8 'Noto Sans TC',system-ui,sans-serif;color:rgba(0,0,0,.62)">
+只留四個控制項：<em>拍照</em>、<em>錄影</em>、<em>我的照片</em>、<em>換鏡頭</em>。刪掉：變焦、閃光燈模式、濾鏡、人像、比例、格線、計時器、設定、HDR、原況照片、連拍。
+「照片／影片」用一個切換鍵決定，切過去之後主按鈕就只有那一個模式；錄影中畫面上只剩一顆停止鍵和計時，沒有暫停。
+每個可點擊區域至少 78px 高。拍完不問任何問題，一律直接儲存，畫面縮進左下角的相簿鍵，馬上可以拍下一張。沒有選單、沒有分頁列，任何畫面離相機都不超過一次點擊。照片區塊是佔位圖，之後換成真實照片。
+</div>
+
+<div class="dv-opt" id="1c">
+<div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>讓手機假裝成一台相機：機身、滿版觀景窗、一顆有實體感的快門，喚起一輩子用傻瓜相機的肌肉記憶。</div>
+<x-import component-from-global-scope="IOSDevice" dark="{{ true }}" from="./ios-frame.jsx" hint-size="402px,874px">
+<div style="height:100%;background:linear-gradient(#232320,#191916);display:flex;flex-direction:column;position:relative;font-family:'Noto Sans TC','Libre Franklin',system-ui,sans-serif">
+
+<sc-if value="{{ cCamera }}" hint-placeholder-val="{{ true }}">
+<div style="flex:1;margin:54px 12px 0;border-radius:10px;border:7px solid #0E0E0C;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);background:repeating-linear-gradient(45deg,#2A2A26 0 10px,#232320 10px 20px);display:flex;align-items:center;justify-content:center;position:relative">
+<span style="font:500 12px/1 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.4)">相機畫面</span>
+<sc-if value="{{ cTuck }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;border-radius:4px;background:repeating-linear-gradient(45deg,#4A4842 0 10px,#3B3A35 10px 20px);box-shadow:0 0 0 3px rgba(232,176,8,.85);transform-origin:bottom left;animation:c-tuck .58s cubic-bezier(.5,0,.75,.9) forwards"></div>
+</sc-if>
+</div>
+<div style="display:flex;justify-content:center;padding:16px 20px 0">
+<div style="display:flex;padding:5px;gap:5px;background:#0E0E0C;border:1px solid rgba(255,255,255,.14);border-radius:14px">
+<button onClick="{{ cSetPhoto }}" style="min-width:104px;height:56px;border:none;border-radius:10px;font-family:inherit;font-size:20px;font-weight:700;cursor:pointer;background:{{ cPhotoBg }};color:{{ cPhotoFg }}">照片</button>
+<button onClick="{{ cSetVideo }}" style="min-width:104px;height:56px;border:none;border-radius:10px;font-family:inherit;font-size:20px;font-weight:700;cursor:pointer;background:{{ cVideoBg }};color:{{ cVideoFg }}">影片</button>
+</div>
+</div>
+<div style="padding:16px 20px 46px;display:flex;align-items:center;justify-content:space-between;gap:14px">
+<button onClick="{{ cOpenPhotos }}" style="width:88px;height:88px;flex:none;border:2px solid rgba(255,255,255,.28);border-radius:16px;background:#191916;color:#fff;font-family:inherit;font-size:16px;font-weight:600;line-height:1.25;cursor:pointer" style-active="background:#0E0E0C">我的<br>照片</button>
+<sc-if value="{{ cPhotoMode }}" hint-placeholder-val="{{ true }}"><button onClick="{{ cShoot }}" style="width:140px;height:140px;flex:none;border-radius:50%;border:9px solid #1F7A4D;background:radial-gradient(circle at 38% 32%,#F2F0EA,#CFCCC4);cursor:pointer;box-shadow:0 8px 0 rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;font-family:inherit;font-size:19px;font-weight:700;color:#14150F;letter-spacing:.02em" style-active="transform:translateY(6px);box-shadow:0 2px 0 rgba(0,0,0,.55)">快門</button></sc-if>
+<sc-if value="{{ cVideoMode }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cRec }}" style="width:140px;height:140px;flex:none;border-radius:50%;border:9px solid #B3261E;background:radial-gradient(circle at 38% 32%,#E8564A,#B3261E);cursor:pointer;box-shadow:0 8px 0 rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;font-family:inherit;font-size:19px;font-weight:700;color:#fff;letter-spacing:.02em" style-active="transform:translateY(6px);box-shadow:0 2px 0 rgba(0,0,0,.55)">錄影</button></sc-if>
+<sc-if value="{{ showFlip }}" hint-placeholder-val="{{ true }}">
+<button onClick="{{ cFlip }}" style="width:88px;height:88px;flex:none;border:2px solid rgba(255,255,255,.28);border-radius:16px;background:#191916;color:#fff;font-family:inherit;font-size:18px;font-weight:600;cursor:pointer" style-active="background:#0E0E0C">換鏡頭</button>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ cRecording }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;margin:54px 12px 0;border-radius:10px;border:7px solid #0E0E0C;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);background:repeating-linear-gradient(45deg,#2A2A26 0 10px,#232320 10px 20px);display:flex;align-items:flex-start;justify-content:center;padding-top:18px">
+<div style="display:flex;align-items:center;gap:11px;background:#B3261E;color:#fff;padding:10px 18px;border-radius:999px">
+<span style="width:15px;height:15px;border-radius:50%;background:#fff;display:block"></span>
+<span style="font:700 23px/1 ui-monospace,Menlo,monospace">{{ recTime }}</span>
+</div>
+</div>
+<div style="padding:22px 20px 46px;display:flex;justify-content:center">
+<button onClick="{{ cStop }}" style="width:140px;height:140px;border-radius:50%;border:9px solid #B3261E;background:#0E0E0C;cursor:pointer;box-shadow:0 8px 0 rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;gap:10px;font-family:inherit;font-size:19px;font-weight:700;color:#fff" style-active="transform:translateY(6px);box-shadow:0 2px 0 rgba(0,0,0,.55)"><span style="width:22px;height:22px;border-radius:4px;background:#fff;display:block"></span>停止</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ cPhotos }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;display:flex;flex-direction:column;min-height:0">
+<div style="flex:1;overflow:auto;padding:56px 14px 0;display:grid;grid-template-columns:1fr 1fr;gap:12px;align-content:start">
+<sc-for list="{{ shots }}" as="shot" hint-placeholder-count="6">
+<div style="display:flex;flex-direction:column;gap:6px">
+<div style="aspect-ratio:1;border-radius:8px;border:5px solid #0E0E0C;background:repeating-linear-gradient(45deg,#2A2A26 0 10px,#232320 10px 20px)"></div>
+<span style="font:600 16px/1.3 'Noto Sans TC','Libre Franklin',system-ui,sans-serif;color:rgba(255,255,255,.72)">{{ shot.when }}</span>
+</div>
+</sc-for>
+</div>
+<div style="padding:16px 20px 46px">
+<button onClick="{{ cBack }}" style="width:100%;height:92px;border:none;border-radius:18px;background:#E8B008;color:#14150F;font-family:inherit;font-size:27px;font-weight:800;cursor:pointer" style-active="background:#C89706">回到相機</button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ cFlash }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;background:#fff;z-index:80"></div>
+</sc-if>
+</div>
+</x-import>
+</div>
+<p class="dv-next">可以直接操作：切換照片／影片、按快門、看我的照片。接著可以說：「換成 Android 外框」&middot;「拿掉換鏡頭鍵」&middot;「加一個傳給家人的畫面」</p>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showFlip&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;保留的控制項&quot;}}">
+class Component extends DCLogic {
+  state = { c: 'camera', flash: false, secs: 0, mode: 'photo' };
+
+  componentWillUnmount() { clearInterval(this.timer); }
+
+  shoot() {
+    this.setState({ flash: true });
+    setTimeout(() => { this.setState({ flash: false }); this.save(); }, 170);
+  }
+
+  // Nothing is thrown away and nothing is asked — the shot tucks into the gallery button.
+  save() {
+    this.setState({ c: 'tuck' });
+    setTimeout(() => this.setState({ c: 'camera' }), 600);
+  }
+
+  startRec() {
+    clearInterval(this.timer);
+    this.setState({ c: 'recording', secs: 0 });
+    this.timer = setInterval(() => this.setState(s => ({ secs: s.secs + 1 })), 1000);
+  }
+
+  stopRec() { clearInterval(this.timer); this.save(); }
+
+  renderVals() {
+    const s = this.state, on = '#E8B008', off = 'transparent';
+    return {
+      shots: [
+        { when: '今天' }, { when: '今天 · 影片 0:14' }, { when: '昨天' },
+        { when: '星期日 · 影片 0:32' }, { when: '8月23日' }, { when: '8月19日' },
+      ],
+      showFlip: this.props.showFlip ?? true,
+      recTime: String(Math.floor(s.secs / 60)) + ':' + String(s.secs % 60).padStart(2, '0'),
+      cCamera: s.c === 'camera' || s.c === 'tuck',
+      cTuck: s.c === 'tuck',
+      cRecording: s.c === 'recording',
+      cPhotos: s.c === 'photos',
+      cFlash: s.flash,
+      cPhotoMode: s.mode === 'photo',
+      cVideoMode: s.mode === 'video',
+      cPhotoBg: s.mode === 'photo' ? on : off,
+      cPhotoFg: s.mode === 'photo' ? '#14150F' : 'rgba(255,255,255,.6)',
+      cVideoBg: s.mode === 'video' ? on : off,
+      cVideoFg: s.mode === 'video' ? '#14150F' : 'rgba(255,255,255,.6)',
+      cSetPhoto: () => this.setState({ mode: 'photo' }),
+      cSetVideo: () => this.setState({ mode: 'video' }),
+      cShoot: () => this.shoot(),
+      cRec: () => this.startRec(),
+      cStop: () => this.stopRec(),
+      cOpenPhotos: () => this.setState({ c: 'photos' }),
+      cBack: () => this.setState({ c: 'camera' }),
+      cFlip: () => {},
+    };
+  }
+}
+</script>
+</body>
+</html>
