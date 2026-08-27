@@ -119,17 +119,18 @@
                     android:textColor="#99FFFFFF" />
             </LinearLayout>
 
-            <TextView
+            <ImageView
                 android:id="@+id/sc_flip"
                 android:layout_width="54dp"
                 android:layout_height="54dp"
                 android:layout_gravity="end|center_vertical"
-                android:gravity="center"
-                android:text="前/後"
-                android:textSize="13sp"
-                android:fontFamily="sans-serif-medium"
-                android:textColor="#FFFFFF"
-                android:background="@drawable/sc_sq_button" />
+                android:padding="14dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/sc_ic_reload"
+                android:contentDescription="切換前後鏡頭"
+                android:background="@drawable/sc_sq_button"
+                android:clickable="true"
+                android:focusable="true" />
         </FrameLayout>
     </LinearLayout>
 

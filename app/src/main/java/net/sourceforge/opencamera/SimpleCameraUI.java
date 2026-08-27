@@ -36,9 +36,9 @@ public class SimpleCameraUI {
     private Screen screen = Screen.CAMERA;
 
     private View root, preview, cameraControls, recordingControls;
-    private TextView tabPhoto, tabVideo, shutter, timerText, galleryLabel, flipBtn;
+    private TextView tabPhoto, tabVideo, shutter, timerText, galleryLabel;
     private ImageView galleryThumb;
-    private View gallery, stopBtn, flash, tuck, recCapsule, recBorder;
+    private View gallery, flipBtn, stopBtn, flash, tuck, recCapsule, recBorder;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private Runnable timerTick;
@@ -194,9 +194,9 @@ public class SimpleCameraUI {
         refreshFlipLabel();
     }
 
-    /** Flip button always shows "前/後" (it toggles between front and back cameras). */
+    /** Flip button uses a static reload icon (no dynamic label). */
     public void refreshFlipLabel() {
-        if (flipBtn != null) flipBtn.setText("前/後");
+        // no-op: the flip button is an icon now
     }
 
     private void selectMode(boolean wantVideo) {
