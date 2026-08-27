@@ -21,6 +21,10 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
 import net.sourceforge.opencamera.cameracontroller.CameraController;
 
 import java.util.Locale;
@@ -114,6 +118,24 @@ public class SimpleCameraUI {
         tabPhoto.setOnClickListener(v -> selectMode(false));
         tabVideo.setOnClickListener(v -> selectMode(true));
         settingsBtn.setOnClickListener(v -> main.openStorageChooser());
+
+        // Edge-to-edge: keep controls clear of the system status/navigation bars so they
+        // don't overlap the nav bar (e.g. on the A56's gesture bar).
+        final int camTop = dp(10), camBottom = dp(22), recTop = dp(10), recBottom = dp(94), gearTop = dp(16);
+        ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
+            Insets sb = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            cameraControls.setPadding(0, camTop, 0, camBottom + sb.bottom);
+            recordingControls.setPadding(0, recTop, 0, recBottom + sb.bottom);
+            if (settingsBtn != null) {
+                ViewGroup.MarginLayoutParams glp = (ViewGroup.MarginLayoutParams) settingsBtn.getLayoutParams();
+                glp.topMargin = gearTop + sb.top;
+                settingsBtn.setLayoutParams(glp);
+            }
+            lastPvTopMargin = -1; // control height changed → recompute preview position
+            root.post(this::adjustPreviewPosition);
+            return insets;
+        });
+        ViewCompat.requestApplyInsets(root);
 
         // keep the recording border + timer capsule glued to the real preview rectangle,
         // so they hug the actual image on any screen ratio (U11, A56, ...).
